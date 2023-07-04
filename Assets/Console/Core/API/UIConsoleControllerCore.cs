@@ -103,7 +103,7 @@ namespace Console
         void Start()
         {
             OnInputFieldChanged_Internal();
-            if(Application.isEditor && _hideIfNotInEditor){
+            if(!Application.isEditor && _hideIfNotInEditor){
                 Destroy(gameObject);
             }
         }
@@ -125,7 +125,7 @@ namespace Console
         protected virtual void Update()
         {
             foreach (KeyCode key in _keysToToggle)
-                if (Input.GetKeyDown(key) &&(!Application.isEditor&&!_hideIfNotInEditor))
+                if (Input.GetKeyDown(key) &&(Application.isEditor&&!_hideIfNotInEditor))
                 {
                     ConsoleActive = !ConsoleActive;
                 }
