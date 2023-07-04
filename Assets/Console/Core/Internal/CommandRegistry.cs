@@ -60,15 +60,15 @@ namespace Console.Internal
 
         }
 
-        static object _rootScope = new Root();
-        static readonly HashSet<Assembly> _loadedAssemblies = new HashSet<Assembly>();
-        static readonly HashsetDictionary<System.Type, ICommand> _commandsByType = new HashsetDictionary<System.Type, ICommand>();
-        static readonly Dictionary<System.Type, IParameterConverter> _parameterConverterMap = new Dictionary<System.Type, IParameterConverter>();
-        static readonly List<string> tList = new List<string>();
+        private static object _rootScope = new Root();
+        private static readonly HashSet<Assembly> _loadedAssemblies = new HashSet<Assembly>();
+        private static readonly HashsetDictionary<System.Type, ICommand> _commandsByType = new HashsetDictionary<System.Type, ICommand>();
+        private static readonly Dictionary<System.Type, IParameterConverter> _parameterConverterMap = new Dictionary<System.Type, IParameterConverter>();
+        private static readonly List<string> _tList = new List<string>();
 
         //Multithreading support
-        static Task _loadingTask;
-        static List<Assembly> _assemblyLoadingQueue = new List<Assembly>();
+        private static Task _loadingTask;
+        private static List<Assembly> _assemblyLoadingQueue = new List<Assembly>();
         public static bool activelyLoading => _loadingTask != null && _loadingTask.Status == TaskStatus.Running;
         
         static CommandRegistry()
@@ -106,7 +106,7 @@ namespace Console.Internal
             }
 
         }
-        static void LoadDataFromUnloadedAssemblies ()
+        private static void LoadDataFromUnloadedAssemblies ()
         {
             while (_assemblyLoadingQueue.Count > 0)
             {
@@ -120,7 +120,7 @@ namespace Console.Internal
                 LoadConsoleCommandsFromAssemblies(assemblies);
             }
         }
-        static void LoadParameterConvertersFromAssemblies (IReadOnlyCollection<Assembly> assemblies)
+        private static void LoadParameterConvertersFromAssemblies (IReadOnlyCollection<Assembly> assemblies)
         {
             foreach (TypeInfo memberInfo in AssemblyUtils.GetAllMembersWithAttribute<ParameterConverterAttribute>(assemblies: assemblies, bindingFlags: BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -152,7 +152,7 @@ namespace Console.Internal
                 }
             }
         }
-        static void LoadConsoleCommandsFromAssemblies(IReadOnlyCollection<Assembly> assemblies)
+        private static void LoadConsoleCommandsFromAssemblies(IReadOnlyCollection<Assembly> assemblies)
         {
             foreach (MemberInfo memberInfo in AssemblyUtils.GetAllMembersWithAttribute<ConsoleCommandAttribute>(assemblies: assemblies, bindingFlags: BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance /*Instance methods are not supported, but we check for them anyways so the appropiate error can be thrown*/))
             {
@@ -196,13 +196,13 @@ namespace Console.Internal
                 Debug.Log($"Loaded command '{command.commandName}'");
             }
         }
-        static ICommand CreateCommandFromMember (MemberInfo memberInfo, ConsoleCommandAttribute commandMetadata)
+        private static ICommand CreateCommandFromMember (MemberInfo memberInfo, ConsoleCommandAttribute commandMetadata)
         {
             if (memberInfo is MethodInfo) return new MethodCommand((MethodInfo)memberInfo, commandMetadata);
             else if (memberInfo is PropertyInfo) return new PropertyCommand((PropertyInfo)memberInfo, commandMetadata);
             else throw new ConsoleCommandInvalidDefinitionTypeException($"{memberInfo.Name} is not a method or property");
         }
-        static (string command, string[] parameters) SeperateCommandFromParameters(string combinedCommandString)
+        private static(string command, string[] parameters) SeperateCommandFromParameters(string combinedCommandString)
         {
             if (combinedCommandString == null) throw new System.InvalidOperationException($"Input string for SeperateCommandFromParameters cannot be null");
             if (combinedCommandString.Length == 0) throw new System.InvalidOperationException($"Input string for SeperateCommandFromParameters cannot be empty");
@@ -216,8 +216,8 @@ namespace Console.Internal
             }
             return (commandName, parameters);
         }
-        static ICommand GetCommandInScope(string commandName, object scope) => GetCommandInScopeType(commandName, scope.GetType());
-        static ICommand GetCommandInScopeType(string commandName, System.Type scopeType)
+        private static ICommand GetCommandInScope(string commandName, object scope) => GetCommandInScopeType(commandName, scope.GetType());
+        private static ICommand GetCommandInScopeType(string commandName, System.Type scopeType)
         {
             foreach (ICommand command in _commandsByType.Get(scopeType))
             {
@@ -225,14 +225,14 @@ namespace Console.Internal
             }
             return null;
         }
-        static IReadOnlyCollection<ICommand> GetAllCommandsInScope(object scope)
+        private static IReadOnlyCollection<ICommand> GetAllCommandsInScope(object scope)
         {
             if (scope == null) return new ICommand[0];
             return _commandsByType.Get(scope.GetType());
         }
-        static string[] SplitCommandPath (string commandPath)
+        private static string[] SplitCommandPath (string commandPath)
         {
-            tList.Clear();
+            _tList.Clear();
             string current = string.Empty;
             for (int i = 0; i < commandPath.Length; i++)
             {
@@ -242,7 +242,7 @@ namespace Console.Internal
                     if (i == commandPath.Length - 1) continue;
                     else if (!Config.IsScopingNullifier(commandPath[i + 1]))
                     {
-                        tList.Add(current);
+                        _tList.Add(current);
                         current = string.Empty;
                         continue;
                     }
@@ -256,15 +256,15 @@ namespace Console.Internal
                     current += character;
                 }
             }
-            tList.Add(current);
-            return tList.ToArray();
+            _tList.Add(current);
+            return _tList.ToArray();
         }
         /// <summary>
         /// Takes a path such as 'rootcommand.subobject.command' and returns the current scope ([subobject] in this example)
         /// </summary>
         /// <param name="commandPath"></param>
         /// <returns>Returns null if the command doesn't lead to a valid scope. Otherwise returns the active scope</returns>
-        static object GetScopeOfCommandString (string commandPath, bool includeFinal = false)
+        private static object GetScopeOfCommandString (string commandPath, bool includeFinal = false)
         {
             if (commandPath == null) return null;
             if (commandPath.Trim().Length == 0) return null;
@@ -282,7 +282,7 @@ namespace Console.Internal
             }
             return scope;
         }
-        static (ICommand command, string[] parameters, object scope) GetCommand_Parameters_AndScopeOfCommandString (string commandPath)
+        private static(ICommand command, string[] parameters, object scope) GetCommand_Parameters_AndScopeOfCommandString (string commandPath)
         {
             object scope = GetScopeOfCommandString(commandPath);
             if (scope == null) return (null, null, null);
@@ -337,7 +337,7 @@ namespace Console.Internal
 #endif
             return returnedObject; // No error - Success!
         }
-        static string ConvertParameterNameToDisplayName (string parameterName)
+        private static string ConvertParameterNameToDisplayName (string parameterName)
         {
             string output = "";
             for (int i = 0; i < parameterName.Length; i++)

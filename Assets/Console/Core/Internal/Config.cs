@@ -15,7 +15,7 @@ namespace Console.Internal
 		/// If a period is followed by a character in this list, the period will be treated as part of the string rather than as a seperator.
 		/// This is specifically used to allow the user to enter a number (ex 0.5) without the the period splitting the string
 		/// </summary>
-		static HashSet<char> scopingNullifiers = new HashSet<char>( new char[]
+		private static HashSet<char> scopingNullifiers = new HashSet<char>( new char[]
 		{
 			'0',
 			'1',

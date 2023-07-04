@@ -9,14 +9,14 @@ namespace Console
     {
         public const string errorColor = "FF512F";
 
-        static HashSet<IConsoleController> registeredConsoles = new HashSet<IConsoleController>();
-        static List<string> history = new List<string>();
-        static int maxHistoryLength => Config.maxHistoryLength;
-        static List<string> inputHistory = new List<string>();
-        static int maxInputHistoryLength => Config.maxInputHistoryLength;
-        static string cachedText;
+        private static HashSet<IConsoleController> _registeredConsoles = new HashSet<IConsoleController>();
+        private static List<string> _history = new List<string>();
+        private static int _maxHistoryLength => Config.maxHistoryLength;
+        private static List<string> _inputHistory = new List<string>();
+        private static int _maxInputHistoryLength => Config.maxInputHistoryLength;
+        private static string _cachedText;
 
-        public static int InputHistoryLength { get => inputHistory.Count; }
+        public static int InputHistoryLength { get => _inputHistory.Count; }
 
         /// <summary>
         /// Begin scanning the specified assembly/s for console commands on a new thread (if they have not been scanned already).
@@ -30,33 +30,33 @@ namespace Console
         /// <param name="assemblies">The assembly or assemblies to load</param>
         /// <remarks>Use this method if you load an assembly that is imported at runtime (ex from a dll)</remarks>
         public static void LoadDataFromAssemblies(params Assembly[] assemblies) => CommandRegistry.LoadDataFromAssemblies(multithread:false, assemblies);
-        static void AppendHistory(string line)
+        private static void AppendHistory(string line)
         {
-            history.Insert(0, line);
-            if (history.Count > maxHistoryLength) history.RemoveRange(maxHistoryLength, history.Count - maxHistoryLength);
+            _history.Insert(0, line);
+            if (_history.Count > _maxHistoryLength) _history.RemoveRange(_maxHistoryLength, _history.Count - _maxHistoryLength);
         }
-        static void AppendInputHistory (string input)
+        private static void AppendInputHistory (string input)
         {
-            inputHistory.RemoveAll(previousInput => previousInput == input); // If the new input exists anywhere in the history, remove the old occurence and move it to the front
-            inputHistory.Insert(0, input);
-            if (inputHistory.Count > maxInputHistoryLength) inputHistory.RemoveRange(maxInputHistoryLength, inputHistory.Count - maxInputHistoryLength);
+            _inputHistory.RemoveAll(previousInput => previousInput == input); // If the new input exists anywhere in the history, remove the old occurence and move it to the front
+            _inputHistory.Insert(0, input);
+            if (_inputHistory.Count > _maxInputHistoryLength) _inputHistory.RemoveRange(_maxInputHistoryLength, _inputHistory.Count - _maxInputHistoryLength);
         }
-        static void UpdateConsoleTexts()
+        private static void UpdateConsoleTexts()
         {
             string text = "";
-            if (history.Count > 0)
+            if (_history.Count > 0)
             {
-                text = history[0];
-                for (int i = 1; i < history.Count; i++)
+                text = _history[0];
+                for (int i = 1; i < _history.Count; i++)
                 {
-                    string line = history[i];
+                    string line = _history[i];
                     text = line + '\n' + text;
                 }
             }
 
-            cachedText = text;
+            _cachedText = text;
 
-            foreach (IConsoleController console in registeredConsoles)
+            foreach (IConsoleController console in _registeredConsoles)
             {
                 console.OnConsoleLogChanged(text);
             }
@@ -68,7 +68,7 @@ namespace Console
         /// <returns>The <paramref name="n">th</paramref> oldest input</returns>
         public static string GetInputHistoryAt(int n)
         {
-            if (n >= 0 && n < inputHistory.Count) return inputHistory[n];
+            if (n >= 0 && n < _inputHistory.Count) return _inputHistory[n];
             else return null;
         }
         /// <summary>
@@ -76,7 +76,7 @@ namespace Console
         /// </summary>
         public static string GetLog()
         {
-            return cachedText;
+            return _cachedText;
         }
         /// <summary>
         /// Logs a message to the console
@@ -91,7 +91,7 @@ namespace Console
                     color = '#' + color;
                 text = $"<color={color}>{text}</color>";
             }
-            lock (history)
+            lock (_history)
             {
                 foreach (string line in text.Split('\n')) AppendHistory(line);
             }
@@ -119,7 +119,7 @@ namespace Console
         /// </summary>
         public static bool IsAnyConsoleActive()
         {
-            foreach (IConsoleController consoleController in registeredConsoles)
+            foreach (IConsoleController consoleController in _registeredConsoles)
                 if (consoleController.IsActive) return true;
             return false;
         }
@@ -128,7 +128,7 @@ namespace Console
         /// </summary>
         public static bool IsAnyConsoleFocused ()
         {
-            foreach (IConsoleController consoleController in registeredConsoles)
+            foreach (IConsoleController consoleController in _registeredConsoles)
                 if (consoleController.IsFocused) return true;
             return false;
         }
@@ -138,7 +138,7 @@ namespace Console
         /// <seealso cref="UnregisterConsole(IConsoleController)"/>
         public static void RegisterConsole(IConsoleController console)
         {
-            registeredConsoles.Add(console);
+            _registeredConsoles.Add(console);
         }
         /// <summary>
         /// Unregisters a console controller so that it is no longer notified when the console log is updated
@@ -146,7 +146,7 @@ namespace Console
         /// <seealso cref="RegisterConsole(IConsoleController)(IConsoleController)"/>
         public static void UnregisterConsole(IConsoleController console)
         {
-            registeredConsoles.Remove(console);
+            _registeredConsoles.Remove(console);
         }
     }
 }

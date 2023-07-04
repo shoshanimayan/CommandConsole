@@ -3,22 +3,22 @@ using System.Collections.Generic;
 namespace Console.Utils
 {
 	/// <summary>
-	/// A generic class for managing a dictionary that stores a collection of values in each key
+	/// A generic class for managing a Dictionary that stores a collection of values in each key
 	/// </summary>
 	[System.Serializable]
 	public class HashsetDictionary<TKey, TValueType>
 	{
-		Dictionary<TKey, HashSet<TValueType>> dictionary;
+		private Dictionary<TKey, HashSet<TValueType>> _dictionary;
 		public HashsetDictionary() 
 		{
-			dictionary = new Dictionary<TKey, HashSet<TValueType>>();
+			_dictionary = new Dictionary<TKey, HashSet<TValueType>>();
 		}
 		public IReadOnlyCollection<TValueType> Values
 		{
 			get
 			{
 				List<TValueType> values = new List<TValueType>();
-				foreach(HashSet<TValueType> hashSet in dictionary.Values)
+				foreach(HashSet<TValueType> hashSet in _dictionary.Values)
 				{
 					foreach(TValueType value in hashSet)
 					{
@@ -28,17 +28,17 @@ namespace Console.Utils
 				return values.ToArray();
 			}
 		}
-		public IReadOnlyCollection<TKey> Keys => dictionary.Keys;
+		public IReadOnlyCollection<TKey> Keys => _dictionary.Keys;
 		public void EnsureKey(TKey key)
 		{
-			if(!dictionary.ContainsKey(key))
+			if(!_dictionary.ContainsKey(key))
 			{
-				dictionary.Add(key, new HashSet<TValueType>());
+				_dictionary.Add(key, new HashSet<TValueType>());
 			}
 		}
 		public void Add(TKey key, TValueType value)
 		{
-			if (dictionary.TryGetValue(key, out HashSet<TValueType> values))
+			if (_dictionary.TryGetValue(key, out HashSet<TValueType> values))
 			{
 				values.Add(value);
 			}
@@ -46,7 +46,7 @@ namespace Console.Utils
 			{
 				HashSet<TValueType> newValueSet = new HashSet<TValueType>();
 				newValueSet.Add(value);
-				dictionary.Add(key, newValueSet);
+				_dictionary.Add(key, newValueSet);
 			}
 		}
 		/// <summary>
@@ -56,16 +56,16 @@ namespace Console.Utils
 		{
 			try
 			{
-				dictionary[key].Add(value);
+				_dictionary[key].Add(value);
 			}
 			catch (KeyNotFoundException)
 			{
-				throw new KeyNotFoundException($"The key '{key}' is not present in the dictionary");
+				throw new KeyNotFoundException($"The key '{key}' is not present in the _dictionary");
 			}
 		}
 		public void Remove(TKey key, TValueType value)
 		{
-			if (dictionary.TryGetValue(key, out HashSet<TValueType> values))
+			if (_dictionary.TryGetValue(key, out HashSet<TValueType> values))
 			{
 				//if (values.Contains(value))
 					values.Remove(value);
@@ -75,52 +75,52 @@ namespace Console.Utils
 		{
 			try
 			{
-				dictionary[key].Remove(value);
+				_dictionary[key].Remove(value);
 			}
 			catch (KeyNotFoundException)
 			{
-				throw new KeyNotFoundException($"Either the key '{key}' or the value '{value}' is not present in the dictionary");
+				throw new KeyNotFoundException($"Either the key '{key}' or the value '{value}' is not present in the _dictionary");
 			}
 			
 		}
 		/// <summary>
-		/// Removes all instances of the value 'value' in the dictionary
+		/// Removes all instances of the value 'value' in the _dictionary
 		/// </summary>
 		/// <param name="key"></param>
 		/// <param name="value"></param>
 		public void RemoveAllOfValueFromAllKeys(TValueType value)
 		{
-			foreach(KeyValuePair<TKey, HashSet<TValueType>> kvp in dictionary)
+			foreach(KeyValuePair<TKey, HashSet<TValueType>> kvp in _dictionary)
 			{
 				kvp.Value.Remove(value);
 			}
 		}
 		public void ClearKey(TKey key)
 		{
-			if (dictionary.ContainsKey(key)) { dictionary[key].Clear(); }
+			if (_dictionary.ContainsKey(key)) { _dictionary[key].Clear(); }
 		}
 		public void DestroyKey (TKey key)
         {
-			dictionary.Remove(key);
+			_dictionary.Remove(key);
         }
 		public void Clear ()
 		{
-			dictionary.Clear();
+			_dictionary.Clear();
 		}
 		public void Clear_KeepKeys ()
 		{
-			foreach(HashSet<TValueType> hashset in dictionary.Values)
+			foreach(HashSet<TValueType> hashset in _dictionary.Values)
 			{
 				hashset.Clear();
 			}
 		}
 		public IReadOnlyCollection<TValueType> Get_CertainOfKey (TKey key)
 		{
-			return dictionary[key];
+			return _dictionary[key];
 		}
 		public IReadOnlyCollection<TValueType> Get (TKey key)
 		{
-			if (dictionary.TryGetValue(key, out HashSet<TValueType> values))
+			if (_dictionary.TryGetValue(key, out HashSet<TValueType> values))
 			{
 				return values;
 			}
@@ -131,7 +131,7 @@ namespace Console.Utils
 		}
 		public bool Contains (TKey key, TValueType value)
 		{
-			if (dictionary.TryGetValue(key, out HashSet<TValueType> values))
+			if (_dictionary.TryGetValue(key, out HashSet<TValueType> values))
 			{
 				return values.Contains(value);
 			}
@@ -140,16 +140,16 @@ namespace Console.Utils
 
 		public bool Contains_CertainOfKey (TKey key, TValueType value)
 		{
-			return dictionary[key].Contains(value);
+			return _dictionary[key].Contains(value);
 		}
 
 		public override string ToString()
 		{
-			string str = $"Hashset Dictionary<{typeof(TKey).Name}, {typeof(TValueType).Name}>:\n";
-			foreach(TKey key in dictionary.Keys)
+			string str = $"Hashset _dictionary<{typeof(TKey).Name}, {typeof(TValueType).Name}>:\n";
+			foreach(TKey key in _dictionary.Keys)
 			{
 				str += $"\t{key.ToString()}:\n";
-				foreach (TValueType value in dictionary[key])
+				foreach (TValueType value in _dictionary[key])
 				{
 					str += $"\t\t{value.ToString()}\n";
 				}

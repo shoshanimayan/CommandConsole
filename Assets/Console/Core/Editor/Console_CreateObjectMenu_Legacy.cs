@@ -9,7 +9,7 @@ namespace Console.Editor
     {
         const string legacyConsoleName = "Console (Legacy)";
         [MenuItem("GameObject/UI/Consoles/" + legacyConsoleName)]
-        static void CreateLegacyConsole(MenuCommand menuCommand)
+        private static void CreateLegacyConsole(MenuCommand menuCommand)
         {
             GameObject selectedObject = menuCommand.context as GameObject;
             Canvas canvas = UIUtils.GetOrCreateCanvasInContext(selectedObject);

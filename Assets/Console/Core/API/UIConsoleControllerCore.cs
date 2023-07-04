@@ -16,26 +16,26 @@ namespace Console
         where TDisplayText : Component where TInputField : Component
     {
 
-        [SerializeField] bool active = true;
-        [SerializeField] List<KeyCode> keysToToggle = new List<KeyCode>(new KeyCode[] { KeyCode.Tilde, KeyCode.BackQuote });
-        [SerializeField] TDisplayText displayText = null;
-        [SerializeField] TInputField inputField = null;
-        [SerializeField] RectTransform consoleTransform = null;
-        [SerializeField] bool allowScrolling = true;
-        [SerializeField] float scrollSensitivity = 6;
-        [SerializeField] float scrollJumpAmount = 40;
-        TInputField lastInputField;
-        int historyPosition = -1;
-        float scrollValue = 0;
+        [SerializeField] bool _active = true;
+        [SerializeField] List<KeyCode> _keysToToggle = new List<KeyCode>(new KeyCode[] { KeyCode.Tilde, KeyCode.BackQuote });
+        [SerializeField] TDisplayText _displayText = null;
+        [SerializeField] TInputField _inputField = null;
+        [SerializeField] RectTransform _consoleTransform = null;
+        [SerializeField] bool _allowScrolling = true;
+        [SerializeField] float _scrollSensitivity = 6;
+        [SerializeField] float _scrollJumpAmount = 40;
+        TInputField _lastInputField;
+        int _historyPosition = -1;
+        float _scrollValue = 0;
         /// <summary>
         /// The unity component responsible for displaying the console log
         /// </summary>
         public TDisplayText DisplayText
         {
-            get => displayText;
+            get => _displayText;
             set
             {
-                displayText = value;
+                _displayText = value;
                 UpdateDisplayTextScrollPosition();
             }
         }
@@ -44,10 +44,10 @@ namespace Console
         /// </summary>
         public TInputField InputField
         {
-            get => inputField;
+            get => _inputField;
             set
             {
-                inputField = value;
+                _inputField = value;
                 OnInputFieldChanged_Internal();
             }
         }
@@ -56,11 +56,11 @@ namespace Console
         /// </summary>
         public bool ConsoleActive
         {
-            get => active;
+            get => _active;
             set
             {
-                active = value;
-                consoleTransform.gameObject.SetActive(active);
+                _active = value;
+                _consoleTransform.gameObject.SetActive(_active);
             }
         }
         bool Focused
@@ -68,30 +68,30 @@ namespace Console
             get
             {
                 return
-                    active &&
-                    Input.mousePosition.x > consoleTransform.rect.xMin + consoleTransform.position.x &&
-                    Input.mousePosition.x < consoleTransform.rect.xMax + consoleTransform.position.x &&
-                    Input.mousePosition.y > consoleTransform.rect.yMin + consoleTransform.position.y &&
-                    Input.mousePosition.y < consoleTransform.rect.yMax + consoleTransform.position.y;
+                    _active &&
+                    Input.mousePosition.x > _consoleTransform.rect.xMin + _consoleTransform.position.x &&
+                    Input.mousePosition.x < _consoleTransform.rect.xMax + _consoleTransform.position.x &&
+                    Input.mousePosition.y > _consoleTransform.rect.yMin + _consoleTransform.position.y &&
+                    Input.mousePosition.y < _consoleTransform.rect.yMax + _consoleTransform.position.y;
             }
         }
         public RectTransform ConsoleTransform
         {
-            get => consoleTransform;
+            get => _consoleTransform;
             set
             {
-                consoleTransform = value;
-                consoleTransform?.gameObject.SetActive(active);
+                _consoleTransform = value;
+                _consoleTransform?.gameObject.SetActive(_active);
             }
         }
         public float ScrollValue
         {
-            get => scrollValue;
+            get => _scrollValue;
             set
             {
-                if (allowScrolling)
+                if (_allowScrolling)
                 {
-                    scrollValue = System.Math.Clamp(value, float.NegativeInfinity, 0);
+                    _scrollValue = System.Math.Clamp(value, float.NegativeInfinity, 0);
                     UpdateDisplayTextScrollPosition();
                 }
             }
@@ -118,7 +118,7 @@ namespace Console
         }
         protected virtual void Update()
         {
-            foreach (KeyCode key in keysToToggle)
+            foreach (KeyCode key in _keysToToggle)
                 if (Input.GetKeyDown(key))
                 {
                     ConsoleActive = !ConsoleActive;
@@ -128,13 +128,13 @@ namespace Console
             {
                 if (Input.GetKeyDown(KeyCode.UpArrow))
                 {
-                    historyPosition = System.Math.Clamp(historyPosition + 1, -1, ConsoleManager.InputHistoryLength - 1);
-                    OnInputHistoryPositionChanged(ConsoleManager.GetInputHistoryAt(historyPosition));
+                    _historyPosition = System.Math.Clamp(_historyPosition + 1, -1, ConsoleManager.InputHistoryLength - 1);
+                    OnInputHistoryPositionChanged(ConsoleManager.GetInputHistoryAt(_historyPosition));
                 }
                 if (Input.GetKeyDown(KeyCode.DownArrow))
                 {
-                    historyPosition = System.Math.Clamp(historyPosition - 1, -1, ConsoleManager.InputHistoryLength - 1);
-                    OnInputHistoryPositionChanged(ConsoleManager.GetInputHistoryAt(historyPosition));
+                    _historyPosition = System.Math.Clamp(_historyPosition - 1, -1, ConsoleManager.InputHistoryLength - 1);
+                    OnInputHistoryPositionChanged(ConsoleManager.GetInputHistoryAt(_historyPosition));
                 }
             }
             
@@ -142,26 +142,26 @@ namespace Console
             {
                 if (Input.mouseScrollDelta.y != 0)
                 {
-                    ScrollValue -= Input.mouseScrollDelta.y * scrollSensitivity;
+                    ScrollValue -= Input.mouseScrollDelta.y * _scrollSensitivity;
                 }
             }
         }
         private void OnValidate()
         {
             UpdateDisplayTextScrollPosition();
-            if (inputField != lastInputField) OnInputFieldChanged_Internal();
-            if (consoleTransform != null)
-                ConsoleTransform?.gameObject.SetActive(active);
+            if (_inputField != _lastInputField) OnInputFieldChanged_Internal();
+            if (_consoleTransform != null)
+                ConsoleTransform?.gameObject.SetActive(_active);
         }
         void UpdateDisplayTextScrollPosition ()
         {
-            if (displayText == null) return;
-            RectTransform displayTextRect = displayText.GetComponent<RectTransform>();
+            if (_displayText == null) return;
+            RectTransform displayTextRect = _displayText.GetComponent<RectTransform>();
             if (displayTextRect == null) return;
-            float scrollJumpPosition = ScrollValue - (ScrollValue % scrollJumpAmount);
+            float scrollJumpPosition = ScrollValue - (ScrollValue % _scrollJumpAmount);
             displayTextRect.anchoredPosition = new Vector2(displayTextRect.anchoredPosition.x, scrollJumpPosition);
         }
-        bool IConsoleController.IsActive { get => active; }
+        bool IConsoleController.IsActive { get => _active; }
         bool IConsoleController.IsFocused { get => Focused; }
         void IConsoleController.OnConsoleLogChanged(string text)
         {
@@ -169,8 +169,8 @@ namespace Console
         }
         void OnInputFieldChanged_Internal ()
         {
-            OnInputFieldChanged(lastInputField, inputField);
-            lastInputField = inputField;
+            OnInputFieldChanged(_lastInputField, _inputField);
+            _lastInputField = _inputField;
         }
         /// <summary>
         /// Attempts to execute the specified string as a console command
@@ -181,7 +181,7 @@ namespace Console
         {
             ((IConsoleController)this).SendCommand(formattedCommand);
             AfterCommandSent(formattedCommand);
-            historyPosition = -1;
+            _historyPosition = -1;
             ScrollValue = 0;
         }
         /// <summary>
