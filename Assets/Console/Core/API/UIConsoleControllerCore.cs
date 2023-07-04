@@ -24,6 +24,7 @@ namespace Console
         [SerializeField] bool _allowScrolling = true;
         [SerializeField] float _scrollSensitivity = 6;
         [SerializeField] float _scrollJumpAmount = 40;
+        [SerializeField] bool _hideIfNotInEditor;
         TInputField _lastInputField;
         int _historyPosition = -1;
         float _scrollValue = 0;
@@ -102,6 +103,9 @@ namespace Console
         void Start()
         {
             OnInputFieldChanged_Internal();
+            if(Application.isEditor && _hideIfNotInEditor){
+                Destroy(gameObject);
+            }
         }
         void OnEnable()
         {
@@ -116,10 +120,12 @@ namespace Console
         {
             ((IConsoleController)this).Unregister();
         }
+
+        
         protected virtual void Update()
         {
             foreach (KeyCode key in _keysToToggle)
-                if (Input.GetKeyDown(key))
+                if (Input.GetKeyDown(key) &&(!Application.isEditor&&!_hideIfNotInEditor))
                 {
                     ConsoleActive = !ConsoleActive;
                 }
